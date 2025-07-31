@@ -1,0 +1,40 @@
+import csv
+import mysql.connector
+
+# Connect to MySQL (XAMPP runs on localhost by default)
+conn = mysql.connector.connect(
+    host='localhost',
+    user='root',  # Default XAMPP user
+    password='',  # Leave empty if no password is set in XAMPP
+    database='ecommerce'
+)
+
+cursor = conn.cursor()
+
+with open('products.csv', newline='', encoding='utf-8') as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        try:
+            cursor.execute("""
+                INSERT INTO products (
+                    id, cost, category, name, brand, retail_price, department, sku, distribution_center_id
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                int(row['id']),
+                float(row['cost']) if row['cost'] else None,
+                row['category'],
+                row['name'],
+                row['brand'],
+                float(row['retail_price']) if row['retail_price'] else None,
+                row['department'],
+                row['sku'],
+                int(row['distribution_center_id']) if row['distribution_center_id'] else None
+            ))
+        except Exception as e:
+            print(f"Error inserting row with id={row['id']}: {e}")
+
+conn.commit()
+cursor.close()
+conn.close()
+
+print("✅ Data loaded successfully into MySQL database.")
